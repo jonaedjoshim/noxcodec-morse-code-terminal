@@ -82,15 +82,21 @@ export function useMorse(initialText = '') {
   }, []);
 
   const handleGenerateLink = useCallback(() => {
-    const source = mode === 'textToMorse' ? plainText : morseToText(morseText);
-    if (!source.trim()) {
+    const textToEncode = mode === 'textToMorse' ? plainText : morseToText(morseText);
+
+    if (!textToEncode || !textToEncode.trim()) {
       showToast('Encode a message first, Agent.', 'error');
       return;
     }
-    const url = generateShareURL(source);
-    navigator.clipboard.writeText(url).then(() => {
-      showToast('Secret link generated & copied!');
-    });
+
+    try {
+      const url = generateShareURL(textToEncode);
+      navigator.clipboard.writeText(url).then(() => {
+        showToast('Secret link generated & copied!');
+      });
+    } catch (err) {
+      showToast('Failed to generate link', 'error');
+    }
   }, [mode, plainText, morseText, showToast]);
 
   const handleLoadLog = useCallback((log) => {
