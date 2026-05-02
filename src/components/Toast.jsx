@@ -9,10 +9,9 @@ export default function Toast({ toast }) {
     <div className="toast toast-top toast-center z-[100]">
       <div
         className={`flex items-center gap-2 px-4 py-3 rounded border font-mono text-xs tracking-wider shadow-lg
-          ${
-            isError
-              ? 'bg-red-950/90 border-red-700/60 text-red-300'
-              : 'bg-green-950/90 border-green-700/60 text-green-300'
+          ${isError
+            ? 'bg-red-950/90 border-red-700/60 text-red-300'
+            : 'bg-green-950/90 border-green-700/60 text-green-300'
           }`}
       >
         {isError ? (

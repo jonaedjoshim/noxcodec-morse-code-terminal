@@ -16,9 +16,8 @@ export default function Converter({
       {/* Mode indicator */}
       <div className="flex items-center justify-center gap-3 mb-6">
         <span
-          className={`font-mono text-xs tracking-widest transition-colors ${
-            mode === 'textToMorse' ? 'text-green-400' : 'text-white/30'
-          }`}
+          className={`font-mono text-xs tracking-widest transition-colors ${mode === 'textToMorse' ? 'text-green-400' : 'text-white/30'
+            }`}
         >
           PLAINTEXT
         </span>
@@ -33,9 +32,8 @@ export default function Converter({
           />
         </button>
         <span
-          className={`font-mono text-xs tracking-widest transition-colors ${
-            mode === 'morseToText' ? 'text-green-400' : 'text-white/30'
-          }`}
+          className={`font-mono text-xs tracking-widest transition-colors ${mode === 'morseToText' ? 'text-green-400' : 'text-white/30'
+            }`}
         >
           MORSE
         </span>
@@ -72,10 +70,9 @@ export default function Converter({
             }
             rows={8}
             className={`w-full bg-[#0a0a0a] border rounded p-4 font-mono text-sm text-green-300 placeholder-white/15 resize-none outline-none transition-all leading-relaxed
-              ${
-                mode === 'textToMorse'
-                  ? 'border-green-800/60 focus:border-green-600 focus:shadow-[0_0_20px_rgba(74,222,128,0.07)]'
-                  : 'border-white/10 text-white/50 cursor-not-allowed'
+              ${mode === 'textToMorse'
+                ? 'border-green-800/60 focus:border-green-600 focus:shadow-[0_0_20px_rgba(74,222,128,0.07)]'
+                : 'border-white/10 text-white/50 cursor-not-allowed'
               }`}
           />
           <div className="flex justify-between items-center">
@@ -114,10 +111,9 @@ export default function Converter({
             }
             rows={8}
             className={`w-full bg-[#0a0a0a] border rounded p-4 font-mono text-sm placeholder-white/15 resize-none outline-none transition-all leading-relaxed tracking-widest
-              ${
-                mode === 'morseToText'
-                  ? 'border-green-800/60 focus:border-green-600 focus:shadow-[0_0_20px_rgba(74,222,128,0.07)] text-green-300'
-                  : 'border-white/10 text-green-500/70 cursor-not-allowed'
+              ${mode === 'morseToText'
+                ? 'border-green-800/60 focus:border-green-600 focus:shadow-[0_0_20px_rgba(74,222,128,0.07)] text-green-300'
+                : 'border-white/10 text-green-500/70 cursor-not-allowed'
               }`}
           />
           <div className="flex justify-between items-center">

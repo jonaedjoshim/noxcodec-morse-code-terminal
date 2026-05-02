@@ -34,28 +34,28 @@ function RadarAnimation() {
       </div>
       <div className="absolute inset-0 flex items-center justify-center radar-sweep">
         <div className="absolute bottom-1/2 left-1/2 -ml-px"
-          style={{ width:'2px', height:'44%', background:'linear-gradient(to top, rgba(74,222,128,0.9), transparent)', borderRadius:'2px', transformOrigin:'bottom center' }} />
+          style={{ width: '2px', height: '44%', background: 'linear-gradient(to top, rgba(74,222,128,0.9), transparent)', borderRadius: '2px', transformOrigin: 'bottom center' }} />
       </div>
       <div className="relative w-2 h-2 rounded-full bg-green-400 shadow-[0_0_8px_2px_rgba(74,222,128,0.6)]" />
       <div className="absolute top-[28%] left-[62%] w-1.5 h-1.5 rounded-full bg-green-400/70 animate-pulse" />
-      <div className="absolute top-[58%] left-[25%] w-1 h-1 rounded-full bg-green-400/50 animate-pulse" style={{animationDelay:'1.2s'}} />
+      <div className="absolute top-[58%] left-[25%] w-1 h-1 rounded-full bg-green-400/50 animate-pulse" style={{ animationDelay: '1.2s' }} />
     </div>
   );
 }
 
 const FEATURES = [
-  { Icon: Zap,    title: 'Real-Time Encoding',  desc: 'Instantaneous bidirectional conversion between plaintext and Morse. Every keystroke transmits immediately.' },
-  { Icon: Lock,   title: 'Secret Share Links',  desc: 'Encode any message into an obfuscated URL. Share the link; only those who know to look will see the message.' },
-  { Icon: Globe,  title: 'Transmission Logs',   desc: 'Your last 5 transmissions are stored locally in your browser. Wipe on command. Leave no trace.' },
+  { Icon: Zap, title: 'Real-Time Encoding', desc: 'Instantaneous bidirectional conversion between plaintext and Morse. Every keystroke transmits immediately.' },
+  { Icon: Lock, title: 'Secret Share Links', desc: 'Encode any message into an obfuscated URL. Share the link; only those who know to look will see the message.' },
+  { Icon: Globe, title: 'Transmission Logs', desc: 'Your last 5 transmissions are stored locally in your browser. Wipe on command. Leave no trace.' },
   { Icon: Shield, title: 'Zero Server Contact', desc: 'All encoding and decoding occurs client-side. Nothing ever leaves your device. No logs, no telemetry.' },
 ];
 
 const HISTORY_ITEMS = [
-  { year: '1836',  event: 'Samuel Morse patents the electromagnetic telegraph.' },
-  { year: '1844',  event: '"What hath God wrought" — first long-distance Morse transmission.' },
-  { year: '1912',  event: 'RMS Titanic operators broadcast SOS in Morse, reaching rescue vessels.' },
-  { year: '1941',  event: 'WWII Allied forces use Morse to coordinate the D-Day landings.' },
-  { year: '1999',  event: 'Maritime SOS via Morse officially retired — replaced by digital systems.' },
+  { year: '1836', event: 'Samuel Morse patents the electromagnetic telegraph.' },
+  { year: '1844', event: '"What hath God wrought" — first long-distance Morse transmission.' },
+  { year: '1912', event: 'RMS Titanic operators broadcast SOS in Morse, reaching rescue vessels.' },
+  { year: '1941', event: 'WWII Allied forces use Morse to coordinate the D-Day landings.' },
+  { year: '1999', event: 'Maritime SOS via Morse officially retired — replaced by digital systems.' },
   { year: 'TODAY', event: 'Intelligence services & amateur operators still train in Morse for resilience.' },
 ];
 
@@ -68,7 +68,7 @@ export default function LandingPage() {
       {/* Hero */}
       <section className="relative min-h-[90vh] flex flex-col items-center justify-center px-4 overflow-hidden">
         <div className="absolute inset-0 opacity-[0.03]"
-          style={{ backgroundImage:'linear-gradient(#4ade80 1px,transparent 1px),linear-gradient(90deg,#4ade80 1px,transparent 1px)', backgroundSize:'40px 40px' }} />
+          style={{ backgroundImage: 'linear-gradient(#4ade80 1px,transparent 1px),linear-gradient(90deg,#4ade80 1px,transparent 1px)', backgroundSize: '40px 40px' }} />
 
         <div data-aos="zoom-in" data-aos-duration="1000" className="mb-8">
           <RadarAnimation />
@@ -139,9 +139,9 @@ export default function LandingPage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[
-              { step:'01', title:'Enter Your Message',  body:'Type any plaintext in the left panel. Characters A–Z, 0–9, and common punctuation are supported.' },
-              { step:'02', title:'Receive Morse Output', body:'Dots and dashes appear in real-time. Word boundaries are marked with a forward slash (/).' },
-              { step:'03', title:'Transmit Securely',   body:'Copy the Morse, or generate a secret URL that anyone with the link can decode instantly.' },
+              { step: '01', title: 'Enter Your Message', body: 'Type any plaintext in the left panel. Characters A–Z, 0–9, and common punctuation are supported.' },
+              { step: '02', title: 'Receive Morse Output', body: 'Dots and dashes appear in real-time. Word boundaries are marked with a forward slash (/).' },
+              { step: '03', title: 'Transmit Securely', body: 'Copy the Morse, or generate a secret URL that anyone with the link can decode instantly.' },
             ].map((s, i) => (
               <div key={s.step} className="relative p-6 border border-white/5 rounded" data-aos="zoom-in" data-aos-delay={i * 100}>
                 <span className="text-5xl font-black text-white/5 absolute top-4 right-4">{s.step}</span>
