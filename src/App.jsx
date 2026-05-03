@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -30,6 +31,7 @@ export default function App() {
         </main>
         <Footer />
       </div>
+      <SpeedInsights />
     </BrowserRouter>
   );
 }

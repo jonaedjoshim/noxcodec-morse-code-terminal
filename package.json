@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@vercel/speed-insights": "^2.0.0",
     "aos": "^2.3.4",
     "daisyui": "^4.12.10",
     "lucide-react": "^0.383.0",
