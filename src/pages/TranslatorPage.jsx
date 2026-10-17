@@ -1,41 +1,41 @@
-import { useEffect } from 'react';
-import AOS from 'aos';
-import { useMorse } from '../hooks/useMorse';
-import { readMessageFromURL } from '../utils/morseUtils';
-import Converter from '../components/Converter';
-import History from '../components/History';
-import Toast from '../components/Toast';
+import { useEffect } from "react";
+import AOS from "aos";
+import { useMorse } from "../hooks/useMorse";
+import { readMessageFromURL } from "../utils/morseUtils";
+import Converter from "../components/translator/Converter";
+import History from "../components/translator/History";
+import Toast from "../components/ui/Toast";
 
 const MORSE_GUIDE = [
-  { char: 'A', code: '.-' },
-  { char: 'B', code: '-...' },
-  { char: 'C', code: '-.-.' },
-  { char: 'D', code: '-..' },
-  { char: 'E', code: '.' },
-  { char: 'F', code: '..-.' },
-  { char: 'G', code: '--.' },
-  { char: 'H', code: '....' },
-  { char: 'I', code: '..' },
-  { char: 'J', code: '.---' },
-  { char: 'K', code: '-.-' },
-  { char: 'L', code: '.-..' },
-  { char: 'M', code: '--' },
-  { char: 'N', code: '-.' },
-  { char: 'O', code: '---' },
-  { char: 'P', code: '.--.' },
+  { char: "A", code: ".-" },
+  { char: "B", code: "-..." },
+  { char: "C", code: "-.-." },
+  { char: "D", code: "-.." },
+  { char: "E", code: "." },
+  { char: "F", code: "..-." },
+  { char: "G", code: "--." },
+  { char: "H", code: "...." },
+  { char: "I", code: ".." },
+  { char: "J", code: ".---" },
+  { char: "K", code: "-.-" },
+  { char: "L", code: ".-.." },
+  { char: "M", code: "--" },
+  { char: "N", code: "-." },
+  { char: "O", code: "---" },
+  { char: "P", code: ".--." },
 ];
 
 export default function TranslatorPage() {
   const urlMessage = readMessageFromURL();
 
-  const morse = useMorse(urlMessage || '');
+  const morse = useMorse(urlMessage || "");
 
   useEffect(() => {
     AOS.refresh();
     if (urlMessage) {
-      morse.showToast('Secret transmission decoded from link!');
+      morse.showToast("Secret transmission decoded from link!");
       // Clean the URL without reload
-      window.history.replaceState({}, '', window.location.pathname);
+      window.history.replaceState({}, "", window.location.pathname);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -57,10 +57,11 @@ export default function TranslatorPage() {
             Morse Translator
           </h1>
           <p className="text-xs text-white/30 mt-2 max-w-xl leading-relaxed">
-            Encode plaintext to Morse or decode incoming signals. Use{' '}
-            <span className="text-green-500">·</span> dots and{' '}
-            <span className="text-green-500">—</span> dashes separated by spaces.
-            Words are delimited by <span className="text-green-500">/</span>.
+            Encode plaintext to Morse or decode incoming signals. Use{" "}
+            <span className="text-green-500">·</span> dots and{" "}
+            <span className="text-green-500">—</span> dashes separated by
+            spaces. Words are delimited by{" "}
+            <span className="text-green-500">/</span>.
           </p>
         </div>
 
@@ -91,7 +92,9 @@ export default function TranslatorPage() {
                 key={item.char}
                 className="flex flex-col items-center gap-1 p-2 bg-[#0a0a0a] border border-white/5 rounded hover:border-green-900/60 transition-colors"
               >
-                <span className="text-xs font-bold text-white/70">{item.char}</span>
+                <span className="text-xs font-bold text-white/70">
+                  {item.char}
+                </span>
                 <span className="text-[9px] text-green-500/70 tracking-wider">
                   {item.code}
                 </span>
@@ -99,7 +102,9 @@ export default function TranslatorPage() {
             ))}
             <div className="flex flex-col items-center gap-1 p-2 bg-[#0a0a0a] border border-white/5 rounded hover:border-green-900/60 transition-colors">
               <span className="text-xs font-bold text-white/70">SPC</span>
-              <span className="text-[9px] text-green-500/70 tracking-wider">/</span>
+              <span className="text-[9px] text-green-500/70 tracking-wider">
+                /
+              </span>
             </div>
           </div>
         </div>
