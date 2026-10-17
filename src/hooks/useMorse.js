@@ -4,6 +4,7 @@ import {
   morseToText,
   generateShareURL,
 } from "../utils/morseUtils";
+import morseData from "../data/morseData.json";
 import { useLocalStorage } from "./useLocalStorage";
 
 const MAX_LOGS = 5;
@@ -13,11 +14,9 @@ const STORAGE_KEY = "transmission_logs";
 
 export function useMorse(initialText = "") {
   const [plainText, setPlainText] = useState(initialText);
-
   const [morseText, setMorseText] = useState(() =>
     initialText ? textToMorse(initialText) : "",
   );
-
   const [mode, setMode] = useState("textToMorse");
   const [toast, setToast] = useState(null);
   const [logs, setLogs] = useLocalStorage(STORAGE_KEY, []);
@@ -34,7 +33,6 @@ export function useMorse(initialText = "") {
 
   const showToast = useCallback((message, type = "success") => {
     clearTimeout(toastTimerRef.current);
-
     setToast({ message, type });
 
     toastTimerRef.current = setTimeout(() => {
@@ -48,9 +46,7 @@ export function useMorse(initialText = "") {
       const normalizedPlain = plain.trim();
       const normalizedMorse = morse.trim();
 
-      if (!normalizedPlain || !normalizedMorse) {
-        return;
-      }
+      if (!normalizedPlain || !normalizedMorse) return;
 
       const entry = {
         id: Date.now(),
@@ -81,9 +77,7 @@ export function useMorse(initialText = "") {
     (plain, morse) => {
       cancelPendingLog();
 
-      if (!plain.trim() || !morse.trim()) {
-        return;
-      }
+      if (!plain.trim() || !morse.trim()) return;
 
       logTimerRef.current = setTimeout(() => {
         saveLog(plain, morse);
@@ -99,7 +93,6 @@ export function useMorse(initialText = "") {
 
       setPlainText(value);
       setMorseText(translatedMorse);
-
       scheduleLog(value, translatedMorse);
     },
     [scheduleLog],
@@ -111,10 +104,32 @@ export function useMorse(initialText = "") {
 
       setMorseText(value);
       setPlainText(translatedText);
-
       scheduleLog(translatedText, value);
     },
     [scheduleLog],
+  );
+
+  const handleReferenceSelect = useCallback(
+    (character) => {
+      if (mode === "textToMorse") {
+        const updatedText = plainText + character;
+        handlePlainChange(updatedText);
+        return;
+      }
+
+      const code = character === " " ? "/" : morseData[character];
+
+      if (!code) return;
+
+      const trimmedMorse = morseText.trimEnd();
+
+      const updatedMorse = trimmedMorse
+        ? `${trimmedMorse} ${code} `
+        : `${code} `;
+
+      handleMorseChange(updatedMorse);
+    },
+    [mode, plainText, morseText, handlePlainChange, handleMorseChange],
   );
 
   const handleSwapMode = useCallback(() => {
@@ -138,11 +153,9 @@ export function useMorse(initialText = "") {
         }
 
         await navigator.clipboard.writeText(text);
-
         showToast(`${label} copied to clipboard.`);
       } catch (error) {
         console.error("[NOXCODEC] Clipboard error:", error);
-
         showToast("Failed to copy. Check clipboard permissions.", "error");
       }
     },
@@ -151,10 +164,8 @@ export function useMorse(initialText = "") {
 
   const handleClear = useCallback(() => {
     cancelPendingLog();
-
     setPlainText("");
     setMorseText("");
-
     showToast("Terminal cleared.");
   }, [cancelPendingLog, showToast]);
 
@@ -175,20 +186,16 @@ export function useMorse(initialText = "") {
       }
 
       await navigator.clipboard.writeText(shareURL);
-
       showToast("Share link generated and copied!");
     } catch (error) {
       console.error("[NOXCODEC] Share link error:", error);
-
       showToast("Failed to generate or copy share link.", "error");
     }
   }, [mode, plainText, morseText, showToast]);
 
   const handleLoadLog = useCallback(
     (log) => {
-      if (!log || typeof log !== "object") {
-        return;
-      }
+      if (!log || typeof log !== "object") return;
 
       if (typeof log.plain !== "string" || typeof log.morse !== "string") {
         showToast("Invalid transmission log.", "error");
@@ -208,7 +215,6 @@ export function useMorse(initialText = "") {
 
   const handleClearLogs = useCallback(() => {
     cancelPendingLog();
-
     setLogs([]);
     showToast("Transmission logs wiped.");
   }, [cancelPendingLog, setLogs, showToast]);
@@ -221,6 +227,7 @@ export function useMorse(initialText = "") {
     logs,
     handlePlainChange,
     handleMorseChange,
+    handleReferenceSelect,
     handleSwapMode,
     handleCopy,
     handleClear,
