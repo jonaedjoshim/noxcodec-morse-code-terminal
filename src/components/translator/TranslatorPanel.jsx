@@ -44,13 +44,12 @@ export default function TranslatorPanel({
         }}
         readOnly={!isEditable}
         placeholder={placeholder}
-        rows={8}
         spellCheck={false}
         autoComplete="off"
         autoCapitalize="off"
         aria-label={label}
         aria-readonly={!isEditable}
-        className={`w-full min-h-[200px] bg-[#0a0a0a] border rounded p-4 font-mono text-sm placeholder-white/15 resize-y outline-none transition-all leading-relaxed ${
+        className={`w-full h-56 sm:h-64 bg-[#0a0a0a] border rounded p-4 font-mono text-sm placeholder-white/15 resize-none overflow-y-auto outline-none transition-all leading-relaxed ${
           type === "morse" ? "tracking-widest" : ""
         } ${
           isEditable
