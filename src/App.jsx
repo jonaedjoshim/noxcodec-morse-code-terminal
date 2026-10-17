@@ -1,18 +1,18 @@
-import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import AOS from 'aos';
-import 'aos/dist/aos.css';
+import { useEffect } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import AOS from "aos";
+import "aos/dist/aos.css";
 
-import Header from './components/Header';
-import Footer from './components/Footer';
-import LandingPage from './pages/LandingPage';
-import TranslatorPage from './pages/TranslatorPage';
+import Header from "./components/Header";
+import Footer from "./components/Footer";
+import LandingPage from "./pages/LandingPage";
+import TranslatorPage from "./pages/TranslatorPage";
 
 export default function App() {
   useEffect(() => {
     AOS.init({
       duration: 700,
-      easing: 'ease-out-cubic',
+      easing: "ease-out-cubic",
       once: true,
       offset: 40,
     });
