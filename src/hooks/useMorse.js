@@ -1,9 +1,11 @@
 import { useState, useCallback, useRef, useEffect } from "react";
+
 import {
   textToMorse,
   morseToText,
   generateShareURL,
 } from "../utils/morseUtils";
+
 import morseData from "../data/morseData.json";
 import { copyToClipboard } from "../utils/clipboard";
 import { useLocalStorage } from "./useLocalStorage";
@@ -15,9 +17,11 @@ const STORAGE_KEY = "transmission_logs";
 
 export function useMorse(initialText = "") {
   const [plainText, setPlainText] = useState(initialText);
+
   const [morseText, setMorseText] = useState(() =>
     initialText ? textToMorse(initialText) : "",
   );
+
   const [mode, setMode] = useState("textToMorse");
   const [toast, setToast] = useState(null);
   const [logs, setLogs] = useLocalStorage(STORAGE_KEY, []);
@@ -101,6 +105,7 @@ export function useMorse(initialText = "") {
 
       setPlainText(value);
       setMorseText(translatedMorse);
+
       scheduleLog(value, translatedMorse);
     },
     [scheduleLog],
@@ -112,6 +117,7 @@ export function useMorse(initialText = "") {
 
       setMorseText(value);
       setPlainText(translatedText);
+
       scheduleLog(translatedText, value);
     },
     [scheduleLog],
@@ -124,7 +130,18 @@ export function useMorse(initialText = "") {
         return;
       }
 
-      const code = character === " " ? "/" : morseData[character];
+      if (character === " ") {
+        const trimmedMorse = morseText.trimEnd();
+
+        if (!trimmedMorse || trimmedMorse.endsWith("/")) {
+          return;
+        }
+
+        handleMorseChange(`${trimmedMorse} / `);
+        return;
+      }
+
+      const code = morseData[character];
 
       if (!code) return;
 

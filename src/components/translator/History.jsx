@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
+
 import {
   Clock3,
   Trash2,
@@ -7,6 +8,8 @@ import {
   X,
   Database,
 } from "lucide-react";
+
+import { useDialogFocus } from "../../hooks/useDialogFocus";
 
 const MAX_LOGS = 5;
 
@@ -60,6 +63,9 @@ function EmptyHistory({ isSearching, onClearSearch }) {
 }
 
 function HistoryItem({ log, index, onLoad }) {
+  const date = new Date(log.timestamp);
+  const validDate = !Number.isNaN(date.getTime());
+
   return (
     <li>
       <button
@@ -85,11 +91,7 @@ function HistoryItem({ log, index, onLoad }) {
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <span
             className="font-mono text-[9px] text-white/25 whitespace-nowrap"
-            title={
-              Number.isNaN(new Date(log.timestamp).getTime())
-                ? "Unknown time"
-                : new Date(log.timestamp).toLocaleString()
-            }
+            title={validDate ? date.toLocaleString() : "Unknown time"}
           >
             {formatTime(log.timestamp)}
           </span>
@@ -108,6 +110,12 @@ function HistoryItem({ log, index, onLoad }) {
 export default function History({ logs, handleLoadLog, handleClearLogs }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [showConfirmation, setShowConfirmation] = useState(false);
+
+  const closeConfirmation = useCallback(() => {
+    setShowConfirmation(false);
+  }, []);
+
+  const dialogRef = useDialogFocus(showConfirmation, closeConfirmation);
 
   const safeLogs = Array.isArray(logs)
     ? logs.filter(
@@ -235,6 +243,7 @@ export default function History({ logs, handleLoadLog, handleClearLogs }) {
 
       {showConfirmation && (
         <div
+          ref={dialogRef}
           className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm px-4"
           role="alertdialog"
           aria-modal="true"
@@ -272,7 +281,7 @@ export default function History({ logs, handleLoadLog, handleClearLogs }) {
             <div className="flex flex-col-reverse sm:flex-row justify-end gap-3">
               <button
                 type="button"
-                onClick={() => setShowConfirmation(false)}
+                onClick={closeConfirmation}
                 className="px-4 py-2.5 border border-white/10 text-white/50 hover:text-white/80 hover:border-white/30 font-mono text-xs tracking-widest rounded transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-green-400"
               >
                 CANCEL

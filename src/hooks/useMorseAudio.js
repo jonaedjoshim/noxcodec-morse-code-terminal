@@ -6,6 +6,61 @@ const MAX_WPM = 30;
 const TONE_FREQUENCY = 600;
 const MAX_SYMBOLS = 1500;
 
+function createSignalTimeline(morse, unit) {
+  const tokens = morse
+    .replace(/[·•]/g, ".")
+    .replace(/[—–−]/g, "-")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+
+  if (tokens.some((token) => token !== "/" && !/^[.-]+$/.test(token))) {
+    throw new Error("Invalid Morse signal.");
+  }
+
+  const timeline = [];
+  let position = 0;
+  let previousWasSignal = false;
+  let wordBoundary = false;
+
+  for (const token of tokens) {
+    if (token === "/") {
+      if (previousWasSignal) {
+        wordBoundary = true;
+      }
+
+      continue;
+    }
+
+    if (previousWasSignal) {
+      position += wordBoundary ? unit * 7 : unit * 3;
+    }
+
+    for (let index = 0; index < token.length; index++) {
+      if (index > 0) {
+        position += unit;
+      }
+
+      const duration = token[index] === "." ? unit : unit * 3;
+
+      timeline.push({
+        start: position,
+        duration,
+      });
+
+      position += duration;
+    }
+
+    previousWasSignal = true;
+    wordBoundary = false;
+  }
+
+  return {
+    timeline,
+    duration: position,
+  };
+}
+
 export function useMorseAudio() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isSignalActive, setIsSignalActive] = useState(false);
@@ -17,9 +72,7 @@ export function useMorseAudio() {
   const timersRef = useRef([]);
   const playbackIdRef = useRef(0);
 
-  const stop = useCallback(() => {
-    playbackIdRef.current += 1;
-
+  const cleanupPlayback = useCallback(() => {
     timersRef.current.forEach(clearTimeout);
     timersRef.current = [];
 
@@ -27,7 +80,7 @@ export function useMorseAudio() {
       try {
         oscillator.stop();
       } catch {
-        // Oscillator may already have stopped.
+        // Oscillator may already be stopped.
       }
     });
 
@@ -39,15 +92,28 @@ export function useMorseAudio() {
     if (context && context.state !== "closed") {
       context.close().catch(() => {});
     }
+  }, []);
+
+  const stop = useCallback(() => {
+    playbackIdRef.current += 1;
+
+    cleanupPlayback();
 
     setIsPlaying(false);
     setIsSignalActive(false);
-  }, []);
+  }, [cleanupPlayback]);
 
   const play = useCallback(
     async (morse) => {
-      if (!morse?.trim()) {
+      stop();
+      setError("");
+
+      if (typeof morse !== "string" || !morse.trim()) {
         setError("No Morse signal available.");
+        return;
+      }
+
+      if (typeof window === "undefined") {
         return;
       }
 
@@ -55,41 +121,40 @@ export function useMorseAudio() {
         window.AudioContext || window.webkitAudioContext;
 
       if (!AudioContextClass) {
-        setError("Web Audio API is not supported by this browser.");
+        setError("Web Audio API is not supported.");
         return;
       }
 
-      stop();
-      setError("");
-
-      const playbackId = playbackIdRef.current;
-
       const normalizedMorse = morse
         .replace(/[·•]/g, ".")
-        .replace(/[—–−]/g, "-")
-        .trim();
-
-      const tokens = normalizedMorse.split(/\s+/).filter(Boolean);
+        .replace(/[—–−]/g, "-");
 
       const symbolCount = [...normalizedMorse].filter(
-        (char) => char === "." || char === "-",
+        (character) => character === "." || character === "-",
       ).length;
 
-      if (symbolCount === 0) {
+      if (!symbolCount) {
         setError("Enter valid Morse dots and dashes.");
         return;
       }
 
       if (symbolCount > MAX_SYMBOLS) {
-        setError("Signal too long. Maximum 1500 Morse symbols.");
+        setError("Maximum 1500 Morse symbols allowed.");
         return;
       }
 
-      if (tokens.some((token) => token !== "/" && !/^[.-]+$/.test(token))) {
+      const unit = 1.2 / speed;
+
+      let signalData;
+
+      try {
+        signalData = createSignalTimeline(normalizedMorse, unit);
+      } catch {
         setError("Invalid Morse signal. Use dots, dashes, and /.");
         return;
       }
 
+      const playbackId = playbackIdRef.current;
       let context;
 
       try {
@@ -100,18 +165,16 @@ export function useMorseAudio() {
 
         if (playbackId !== playbackIdRef.current) {
           if (context.state !== "closed") {
-            await context.close().catch(() => {});
+            context.close().catch(() => {});
           }
+
           return;
         }
 
-        const unit = 1.2 / speed;
         const startTime = context.currentTime + 0.08;
 
-        let position = 0;
-
-        const scheduleSignal = (duration) => {
-          const signalStart = startTime + position;
+        signalData.timeline.forEach(({ start, duration }) => {
+          const signalStart = startTime + start;
           const signalEnd = signalStart + duration;
 
           const oscillator = context.createOscillator();
@@ -157,30 +220,6 @@ export function useMorseAudio() {
           );
 
           timersRef.current.push(onTimer, offTimer);
-
-          position += duration;
-        };
-
-        tokens.forEach((token, tokenIndex) => {
-          if (token === "/") return;
-
-          [...token].forEach((symbol, symbolIndex) => {
-            const duration = symbol === "." ? unit : unit * 3;
-
-            scheduleSignal(duration);
-
-            if (symbolIndex < token.length - 1) {
-              position += unit;
-            }
-          });
-
-          const nextToken = tokens[tokenIndex + 1];
-
-          if (nextToken === "/") {
-            position += unit * 7;
-          } else if (nextToken) {
-            position += unit * 3;
-          }
         });
 
         setIsPlaying(true);
@@ -191,12 +230,12 @@ export function useMorseAudio() {
               stop();
             }
           },
-          (position + 0.2) * 1000,
+          (signalData.duration + 0.2) * 1000,
         );
 
         timersRef.current.push(endTimer);
-      } catch (err) {
-        console.error("[NOXCODEC] Audio playback error:", err);
+      } catch (error) {
+        console.error("[NOXCODEC] Audio playback error:", error);
 
         if (playbackId === playbackIdRef.current) {
           stop();
@@ -208,28 +247,6 @@ export function useMorseAudio() {
     },
     [speed, stop],
   );
-
-  useEffect(() => {
-    return () => {
-      playbackIdRef.current += 1;
-
-      timersRef.current.forEach(clearTimeout);
-
-      oscillatorsRef.current.forEach((oscillator) => {
-        try {
-          oscillator.stop();
-        } catch {
-          // Already stopped.
-        }
-      });
-
-      const context = audioContextRef.current;
-
-      if (context && context.state !== "closed") {
-        context.close().catch(() => {});
-      }
-    };
-  }, []);
 
   const changeSpeed = useCallback(
     (value) => {
@@ -243,14 +260,18 @@ export function useMorseAudio() {
         return;
       }
 
-      if (isPlaying) {
-        stop();
-      }
-
+      stop();
       setSpeed(nextSpeed);
     },
-    [isPlaying, stop],
+    [stop],
   );
+
+  useEffect(() => {
+    return () => {
+      playbackIdRef.current += 1;
+      cleanupPlayback();
+    };
+  }, [cleanupPlayback]);
 
   return {
     isPlaying,

@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { Play, Square, Volume2, Radio, Gauge, Activity } from "lucide-react";
 
 import { useMorseAudio } from "../../hooks/useMorseAudio";
@@ -6,7 +7,15 @@ export default function MorseAudioPlayer({ morseText }) {
   const { isPlaying, isSignalActive, speed, error, play, stop, changeSpeed } =
     useMorseAudio();
 
+  const previousMorseRef = useRef(morseText);
   const hasSignal = Boolean(morseText?.trim());
+
+  useEffect(() => {
+    if (previousMorseRef.current !== morseText) {
+      previousMorseRef.current = morseText;
+      stop();
+    }
+  }, [morseText, stop]);
 
   return (
     <section className="mt-12" aria-labelledby="audio-player-title">
@@ -41,10 +50,16 @@ export default function MorseAudioPlayer({ morseText }) {
               </span>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div
+              className="flex items-center gap-2"
+              role="status"
+              aria-live="polite"
+            >
               <span
                 className={`w-1.5 h-1.5 rounded-full ${
-                  isPlaying ? "bg-green-400 animate-pulse" : "bg-white/20"
+                  isPlaying
+                    ? "bg-green-400 animate-pulse motion-reduce:animate-none"
+                    : "bg-white/20"
                 }`}
               />
 
@@ -143,7 +158,7 @@ export default function MorseAudioPlayer({ morseText }) {
                     onClick={stop}
                     className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-500 text-white font-mono text-xs font-bold tracking-widest rounded transition-all active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-400"
                   >
-                    <Square size={13} fill="currentColor" />
+                    <Square size={13} fill="currentColor" aria-hidden="true" />
                     STOP
                   </button>
                 ) : (
@@ -153,7 +168,7 @@ export default function MorseAudioPlayer({ morseText }) {
                     disabled={!hasSignal}
                     className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-green-500 hover:bg-green-400 text-black font-mono text-xs font-bold tracking-widest rounded transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-400"
                   >
-                    <Play size={14} fill="currentColor" />
+                    <Play size={14} fill="currentColor" aria-hidden="true" />
                     PLAY MORSE
                   </button>
                 )}

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import AOS from "aos";
 
 import { useMorse } from "../hooks/useMorse";
@@ -11,18 +11,27 @@ import History from "../components/translator/History";
 import Toast from "../components/ui/Toast";
 
 export default function TranslatorPage() {
-  const urlMessage = readMessageFromURL();
+  const [urlMessage] = useState(() => readMessageFromURL());
   const morse = useMorse(urlMessage || "");
+
+  const showToast = morse.showToast;
 
   useEffect(() => {
     AOS.refresh();
 
-    if (urlMessage) {
-      morse.showToast("Shared transmission loaded!");
+    if (!urlMessage) return;
 
-      window.history.replaceState({}, "", window.location.pathname);
-    }
-  }, []);
+    showToast("Shared transmission loaded!");
+
+    const url = new URL(window.location.href);
+    url.searchParams.delete("msg");
+
+    window.history.replaceState(
+      window.history.state,
+      "",
+      `${url.pathname}${url.search}${url.hash}`,
+    );
+  }, [urlMessage, showToast]);
 
   return (
     <div className="min-h-screen bg-[#050505] text-white font-mono pt-20 pb-12">
