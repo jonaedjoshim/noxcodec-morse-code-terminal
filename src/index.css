@@ -2,7 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Global resets */
 * {
   box-sizing: border-box;
 }
@@ -12,6 +11,8 @@ html {
 }
 
 body {
+  margin: 0;
+  min-width: 320px;
   background-color: #050505;
   color: #ffffff;
   font-family: "JetBrains Mono", "Fira Code", "Courier New", monospace;
@@ -20,9 +21,37 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Scrollbar */
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+textarea {
+  font-family: "JetBrains Mono", "Fira Code", "Courier New", monospace;
+}
+
+:focus-visible {
+  outline: 2px solid #4ade80;
+  outline-offset: 3px;
+}
+
+::selection {
+  background: rgba(74, 222, 128, 0.25);
+  color: #ffffff;
+}
+
 ::-webkit-scrollbar {
   width: 4px;
+  height: 4px;
 }
 
 ::-webkit-scrollbar-track {
@@ -38,18 +67,6 @@ body {
   background: #4ade80;
 }
 
-/* Selection */
-::selection {
-  background: rgba(74, 222, 128, 0.25);
-  color: #fff;
-}
-
-/* Textarea monospace */
-textarea {
-  font-family: "JetBrains Mono", "Fira Code", "Courier New", monospace;
-}
-
-/* Scanline overlay effect on the hero */
 .scanline::after {
   content: "";
   position: fixed;
@@ -65,11 +82,10 @@ textarea {
   z-index: 9999;
 }
 
-/* Glow pulse for the active dot */
 @keyframes glow-pulse {
   0%,
   100% {
-    box-shadow: 0 0 4px 0 rgba(74, 222, 128, 0.8);
+    box-shadow: 0 0 4px rgba(74, 222, 128, 0.8);
   }
 
   50% {
@@ -79,4 +95,19 @@ textarea {
 
 .glow-dot {
   animation: glow-pulse 2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
