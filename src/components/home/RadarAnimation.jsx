@@ -1,6 +1,10 @@
 export default function RadarAnimation() {
   return (
-    <div className="relative w-48 h-48 sm:w-56 sm:h-56 flex items-center justify-center">
+    <div
+      className="relative w-48 h-48 sm:w-56 sm:h-56 flex items-center justify-center"
+      role="img"
+      aria-label="Animated green radar scanner"
+    >
       <style>{`
         @keyframes radar-sweep {
           from { transform: rotate(0deg); }
@@ -27,6 +31,15 @@ export default function RadarAnimation() {
 
         .radar-ring-2 {
           animation: radar-ping-2 3s ease-in-out infinite 0.5s;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .radar-sweep,
+          .radar-ring-1,
+          .radar-ring-2,
+          .radar-blip {
+            animation: none !important;
+          }
         }
       `}</style>
 
@@ -60,10 +73,10 @@ export default function RadarAnimation() {
 
       <div className="relative w-2 h-2 rounded-full bg-green-400 shadow-[0_0_8px_2px_rgba(74,222,128,0.6)]" />
 
-      <div className="absolute top-[28%] left-[62%] w-1.5 h-1.5 rounded-full bg-green-400/70 animate-pulse" />
+      <div className="radar-blip absolute top-[28%] left-[62%] w-1.5 h-1.5 rounded-full bg-green-400/70 animate-pulse" />
 
       <div
-        className="absolute top-[58%] left-[25%] w-1 h-1 rounded-full bg-green-400/50 animate-pulse"
+        className="radar-blip absolute top-[58%] left-[25%] w-1 h-1 rounded-full bg-green-400/50 animate-pulse"
         style={{ animationDelay: "1.2s" }}
       />
     </div>
