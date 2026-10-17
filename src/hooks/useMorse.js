@@ -5,6 +5,7 @@ import {
   generateShareURL,
 } from "../utils/morseUtils";
 import morseData from "../data/morseData.json";
+import { copyToClipboard } from "../utils/clipboard";
 import { useLocalStorage } from "./useLocalStorage";
 
 const MAX_LOGS = 5;
@@ -31,8 +32,15 @@ export function useMorse(initialText = "") {
     };
   }, []);
 
+  const dismissToast = useCallback(() => {
+    clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = null;
+    setToast(null);
+  }, []);
+
   const showToast = useCallback((message, type = "success") => {
     clearTimeout(toastTimerRef.current);
+
     setToast({ message, type });
 
     toastTimerRef.current = setTimeout(() => {
@@ -112,8 +120,7 @@ export function useMorse(initialText = "") {
   const handleReferenceSelect = useCallback(
     (character) => {
       if (mode === "textToMorse") {
-        const updatedText = plainText + character;
-        handlePlainChange(updatedText);
+        handlePlainChange(plainText + character);
         return;
       }
 
@@ -147,16 +154,15 @@ export function useMorse(initialText = "") {
         return;
       }
 
-      try {
-        if (!navigator.clipboard?.writeText) {
-          throw new Error("Clipboard API unavailable");
-        }
+      const copied = await copyToClipboard(text);
 
-        await navigator.clipboard.writeText(text);
+      if (copied) {
         showToast(`${label} copied to clipboard.`);
-      } catch (error) {
-        console.error("[NOXCODEC] Clipboard error:", error);
-        showToast("Failed to copy. Check clipboard permissions.", "error");
+      } else {
+        showToast(
+          "Clipboard access failed. Check browser permissions.",
+          "error",
+        );
       }
     },
     [showToast],
@@ -164,8 +170,10 @@ export function useMorse(initialText = "") {
 
   const handleClear = useCallback(() => {
     cancelPendingLog();
+
     setPlainText("");
     setMorseText("");
+
     showToast("Terminal cleared.");
   }, [cancelPendingLog, showToast]);
 
@@ -180,16 +188,16 @@ export function useMorse(initialText = "") {
 
     try {
       const shareURL = generateShareURL(textToEncode);
+      const copied = await copyToClipboard(shareURL);
 
-      if (!navigator.clipboard?.writeText) {
-        throw new Error("Clipboard API unavailable");
+      if (copied) {
+        showToast("Share link generated and copied!");
+      } else {
+        showToast("Link generated, but clipboard access failed.", "error");
       }
-
-      await navigator.clipboard.writeText(shareURL);
-      showToast("Share link generated and copied!");
     } catch (error) {
       console.error("[NOXCODEC] Share link error:", error);
-      showToast("Failed to generate or copy share link.", "error");
+      showToast("Failed to generate share link.", "error");
     }
   }, [mode, plainText, morseText, showToast]);
 
@@ -215,6 +223,7 @@ export function useMorse(initialText = "") {
 
   const handleClearLogs = useCallback(() => {
     cancelPendingLog();
+
     setLogs([]);
     showToast("Transmission logs wiped.");
   }, [cancelPendingLog, setLogs, showToast]);
@@ -235,5 +244,6 @@ export function useMorse(initialText = "") {
     handleLoadLog,
     handleClearLogs,
     showToast,
+    dismissToast,
   };
 }
