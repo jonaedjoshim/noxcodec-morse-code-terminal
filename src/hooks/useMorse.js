@@ -1,114 +1,217 @@
-import { useState, useCallback, useRef } from 'react';
-import { textToMorse, morseToText, generateShareURL } from '../utils/morseUtils';
-import { useLocalStorage } from './useLocalStorage';
+import { useState, useCallback, useRef, useEffect } from "react";
+import {
+  textToMorse,
+  morseToText,
+  generateShareURL,
+} from "../utils/morseUtils";
+import { useLocalStorage } from "./useLocalStorage";
 
 const MAX_LOGS = 5;
+const LOG_DEBOUNCE_DELAY = 1500;
+const TOAST_DURATION = 3000;
+const STORAGE_KEY = "transmission_logs";
 
-export function useMorse(initialText = '') {
+export function useMorse(initialText = "") {
   const [plainText, setPlainText] = useState(initialText);
-  const [morseText, setMorseText] = useState(
-    initialText ? textToMorse(initialText) : ''
-  );
-  const [mode, setMode] = useState('textToMorse');
-  const [toast, setToast] = useState(null);
-  const [logs, setLogs] = useLocalStorage('transmission_logs', []);
-  const logTimer = useRef(null);
 
-  const showToast = useCallback((message, type = 'success') => {
+  const [morseText, setMorseText] = useState(() =>
+    initialText ? textToMorse(initialText) : "",
+  );
+
+  const [mode, setMode] = useState("textToMorse");
+  const [toast, setToast] = useState(null);
+  const [logs, setLogs] = useLocalStorage(STORAGE_KEY, []);
+
+  const logTimerRef = useRef(null);
+  const toastTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      clearTimeout(logTimerRef.current);
+      clearTimeout(toastTimerRef.current);
+    };
+  }, []);
+
+  const showToast = useCallback((message, type = "success") => {
+    clearTimeout(toastTimerRef.current);
+
     setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
+
+    toastTimerRef.current = setTimeout(() => {
+      setToast(null);
+      toastTimerRef.current = null;
+    }, TOAST_DURATION);
   }, []);
 
   const saveLog = useCallback(
     (plain, morse) => {
-      if (!plain.trim()) return;
+      const normalizedPlain = plain.trim();
+      const normalizedMorse = morse.trim();
+
+      if (!normalizedPlain || !normalizedMorse) {
+        return;
+      }
+
       const entry = {
         id: Date.now(),
-        plain: plain.trim(),
-        morse: morse.trim(),
+        plain: normalizedPlain,
+        morse: normalizedMorse,
         timestamp: new Date().toISOString(),
       };
-      setLogs((prev) => {
-        const updated = [entry, ...prev.filter((l) => l.plain !== plain.trim())];
-        return updated.slice(0, MAX_LOGS);
+
+      setLogs((previousLogs) => {
+        const safeLogs = Array.isArray(previousLogs) ? previousLogs : [];
+
+        const filteredLogs = safeLogs.filter(
+          (log) => log.plain !== normalizedPlain,
+        );
+
+        return [entry, ...filteredLogs].slice(0, MAX_LOGS);
       });
     },
-    [setLogs]
+    [setLogs],
+  );
+
+  const cancelPendingLog = useCallback(() => {
+    clearTimeout(logTimerRef.current);
+    logTimerRef.current = null;
+  }, []);
+
+  const scheduleLog = useCallback(
+    (plain, morse) => {
+      cancelPendingLog();
+
+      if (!plain.trim() || !morse.trim()) {
+        return;
+      }
+
+      logTimerRef.current = setTimeout(() => {
+        saveLog(plain, morse);
+        logTimerRef.current = null;
+      }, LOG_DEBOUNCE_DELAY);
+    },
+    [cancelPendingLog, saveLog],
   );
 
   const handlePlainChange = useCallback(
     (value) => {
+      const translatedMorse = textToMorse(value);
+
       setPlainText(value);
-      const morse = textToMorse(value);
-      setMorseText(morse);
-      clearTimeout(logTimer.current);
-      logTimer.current = setTimeout(() => {
-        if (value.trim()) saveLog(value, morse);
-      }, 1500);
+      setMorseText(translatedMorse);
+
+      scheduleLog(value, translatedMorse);
     },
-    [saveLog]
+    [scheduleLog],
   );
 
   const handleMorseChange = useCallback(
     (value) => {
+      const translatedText = morseToText(value);
+
       setMorseText(value);
-      const plain = morseToText(value);
-      setPlainText(plain);
-      clearTimeout(logTimer.current);
-      logTimer.current = setTimeout(() => {
-        if (plain.trim()) saveLog(plain, value);
-      }, 1500);
+      setPlainText(translatedText);
+
+      scheduleLog(translatedText, value);
     },
-    [saveLog]
+    [scheduleLog],
   );
 
   const handleSwapMode = useCallback(() => {
-    setMode((prev) => (prev === 'textToMorse' ? 'morseToText' : 'textToMorse'));
-  }, []);
+    cancelPendingLog();
+
+    setMode((previousMode) =>
+      previousMode === "textToMorse" ? "morseToText" : "textToMorse",
+    );
+  }, [cancelPendingLog]);
 
   const handleCopy = useCallback(
-    (text, label = 'Transmission') => {
-      if (!text) return;
-      navigator.clipboard.writeText(text).then(() => {
+    async (text, label = "Transmission") => {
+      if (!text) {
+        showToast("Nothing to copy, Agent.", "error");
+        return;
+      }
+
+      try {
+        if (!navigator.clipboard?.writeText) {
+          throw new Error("Clipboard API unavailable");
+        }
+
+        await navigator.clipboard.writeText(text);
+
         showToast(`${label} copied to clipboard.`);
-      });
+      } catch (error) {
+        console.error("[NOXCODEC] Clipboard error:", error);
+
+        showToast("Failed to copy. Check clipboard permissions.", "error");
+      }
     },
-    [showToast]
+    [showToast],
   );
 
   const handleClear = useCallback(() => {
-    setPlainText('');
-    setMorseText('');
-  }, []);
+    cancelPendingLog();
 
-  const handleGenerateLink = useCallback(() => {
-    const textToEncode = mode === 'textToMorse' ? plainText : morseToText(morseText);
+    setPlainText("");
+    setMorseText("");
 
-    if (!textToEncode || !textToEncode.trim()) {
-      showToast('Encode a message first, Agent.', 'error');
+    showToast("Terminal cleared.");
+  }, [cancelPendingLog, showToast]);
+
+  const handleGenerateLink = useCallback(async () => {
+    const textToEncode =
+      mode === "textToMorse" ? plainText : morseToText(morseText);
+
+    if (!textToEncode.trim()) {
+      showToast("Enter a message first, Agent.", "error");
       return;
     }
 
     try {
-      const url = generateShareURL(textToEncode);
-      navigator.clipboard.writeText(url).then(() => {
-        showToast('Secret link generated & copied!');
-      });
-    } catch (err) {
-      showToast('Failed to generate link', 'error');
+      const shareURL = generateShareURL(textToEncode);
+
+      if (!navigator.clipboard?.writeText) {
+        throw new Error("Clipboard API unavailable");
+      }
+
+      await navigator.clipboard.writeText(shareURL);
+
+      showToast("Share link generated and copied!");
+    } catch (error) {
+      console.error("[NOXCODEC] Share link error:", error);
+
+      showToast("Failed to generate or copy share link.", "error");
     }
   }, [mode, plainText, morseText, showToast]);
 
-  const handleLoadLog = useCallback((log) => {
-    setPlainText(log.plain);
-    setMorseText(log.morse);
-    setMode('textToMorse');
-  }, []);
+  const handleLoadLog = useCallback(
+    (log) => {
+      if (!log || typeof log !== "object") {
+        return;
+      }
+
+      if (typeof log.plain !== "string" || typeof log.morse !== "string") {
+        showToast("Invalid transmission log.", "error");
+        return;
+      }
+
+      cancelPendingLog();
+
+      setPlainText(log.plain);
+      setMorseText(log.morse);
+      setMode("textToMorse");
+
+      showToast("Transmission restored from history.");
+    },
+    [cancelPendingLog, showToast],
+  );
 
   const handleClearLogs = useCallback(() => {
+    cancelPendingLog();
+
     setLogs([]);
-    showToast('Transmission logs wiped.');
-  }, [setLogs, showToast]);
+    showToast("Transmission logs wiped.");
+  }, [cancelPendingLog, setLogs, showToast]);
 
   return {
     plainText,

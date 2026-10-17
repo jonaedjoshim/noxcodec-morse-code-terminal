@@ -1,28 +1,43 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from "react";
 
-/**
- * A custom hook that syncs state with localStorage.
- */
 export function useLocalStorage(key, initialValue) {
   const [storedValue, setStoredValue] = useState(() => {
+    if (typeof window === "undefined") {
+      return initialValue;
+    }
+
     try {
       const item = window.localStorage.getItem(key);
-      return item ? JSON.parse(item) : initialValue;
-    } catch {
+
+      if (item === null) {
+        return initialValue;
+      }
+
+      const parsedValue = JSON.parse(item);
+
+      if (Array.isArray(initialValue) && !Array.isArray(parsedValue)) {
+        return initialValue;
+      }
+
+      return parsedValue;
+    } catch (error) {
+      console.warn(`[NOXCODEC] Failed to read localStorage key: ${key}`, error);
+
       return initialValue;
     }
   });
 
-  const setValue = (value) => {
-    try {
-      const valueToStore =
-        value instanceof Function ? value(storedValue) : value;
-      setStoredValue(valueToStore);
-      window.localStorage.setItem(key, JSON.stringify(valueToStore));
-    } catch (error) {
-      console.error('useLocalStorage write error:', error);
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
     }
-  };
 
-  return [storedValue, setValue];
+    try {
+      window.localStorage.setItem(key, JSON.stringify(storedValue));
+    } catch (error) {
+      console.warn(`[NOXCODEC] Failed to save localStorage key: ${key}`, error);
+    }
+  }, [key, storedValue]);
+
+  return [storedValue, setStoredValue];
 }
