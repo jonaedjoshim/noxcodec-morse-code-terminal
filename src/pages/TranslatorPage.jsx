@@ -5,6 +5,7 @@ import { useMorse } from "../hooks/useMorse";
 import { readMessageFromURL } from "../utils/morseUtils";
 
 import Converter from "../components/translator/Converter";
+import MorseAudioPlayer from "../components/translator/MorseAudioPlayer";
 import MorseReference from "../components/translator/MorseReference";
 import History from "../components/translator/History";
 import Toast from "../components/ui/Toast";
@@ -25,7 +26,7 @@ export default function TranslatorPage() {
 
   return (
     <div className="min-h-screen bg-[#050505] text-white font-mono pt-20 pb-12">
-      <Toast toast={morse.toast} />
+      <Toast toast={morse.toast} onClose={morse.dismissToast} />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="mb-10" data-aos="fade-down">
@@ -61,6 +62,8 @@ export default function TranslatorPage() {
           handleClear={morse.handleClear}
           handleGenerateLink={morse.handleGenerateLink}
         />
+
+        <MorseAudioPlayer morseText={morse.morseText} />
 
         <MorseReference
           mode={morse.mode}
