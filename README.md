@@ -838,7 +838,7 @@ Developed as a frontend project focused on modern React development, interactive
 
 **Live Website:** [NoxCodec](https://noxcodec-morse-code-terminal.vercel.app/)
 
-**GitHub:** [Project Repository](https://github.com/YOUR_USERNAME/noxcodec-morse-code-terminal)
+**GitHub:** [Project Repository](https://github.com/jonaedjoshim/noxcodec-morse-code-terminal.git)
 
 ---
 
